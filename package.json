@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "git://github.com/rainbowicenow/homebridge-brunt-plug.git"
+    "url": "git://github.com/rainbowicenow/homebridge-brunt-outlet.git"
   },
   "license": "ISC",
   "preferGlobal": true,
@@ -20,9 +20,9 @@
     "cookie": "^0.3.1"
   },
   "bugs": {
-    "url": "https://github.com/rainbowicenow/homebridge-brunt-plug/issues"
+    "url": "https://github.com/rainbowicenow/homebridge-brunt-outlet/issues"
   },
-  "homepage": "https://github.com/rainbowicenow/homebridge-brunt-plug#readme",
+  "homepage": "https://github.com/rainbowicenow/homebridge-brunt-outlet#readme",
   "main": "index.js",
   "directories": {
     "lib": "lib"
