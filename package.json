@@ -1,10 +1,10 @@
 {
   "name": "homebridge-brunt",
-  "description": "HomeBridge plugin for Brunt devices",
-  "version": "0.1.2",
+  "description": "HomeBridge Brunt Plug Plugin",
+  "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "git://github.com/RobXYZ/homebridge-brunt.git"
+    "url": "git://github.com/rainbowicenow/homebridge-brunt.git"
   },
   "license": "ISC",
   "preferGlobal": true,
@@ -20,9 +20,9 @@
     "cookie": "^0.3.1"
   },
   "bugs": {
-    "url": "https://github.com/RobXYZ/homebridge-brunt/issues"
+    "url": "https://github.com/rainbowicenow/homebridge-brunt/issues"
   },
-  "homepage": "https://github.com/RobXYZ/homebridge-brunt#readme",
+  "homepage": "https://github.com/rainbowicenow/homebridge-brunt#readme",
   "main": "index.js",
   "directories": {
     "lib": "lib"
