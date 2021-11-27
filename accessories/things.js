@@ -7,7 +7,7 @@ var stateRefreshRate = 2000; // Interval for internal status update refresh
 
 
 /*
- *   Blind Accessory
+ *   Plug Accessory
  */
 
 module.exports = function (oAccessory, oService, oCharacteristic, ouuid) {
@@ -17,19 +17,19 @@ module.exports = function (oAccessory, oService, oCharacteristic, ouuid) {
 		Characteristic = oCharacteristic;
 		uuid = ouuid;
 
-		inherits(BruntBlindAccessory, Accessory);
-		BruntBlindAccessory.prototype.deviceGroup = "blinds";
-		BruntBlindAccessory.prototype.loadData = loadData;
-		BruntBlindAccessory.prototype.getServices = getServices;
-		BruntBlindAccessory.prototype.refreshState = refreshState;
-		BruntBlindAccessory.prototype.identify = identify;
+		inherits(BruntPlugAccessory, Accessory);
+		BruntPlugAccessory.prototype.deviceGroup = "plugs";
+		BruntPlugAccessory.prototype.loadData = loadData;
+		BruntPlugAccessory.prototype.getServices = getServices;
+		BruntPlugAccessory.prototype.refreshState = refreshState;
+		BruntPlugAccessory.prototype.identify = identify;
 	
 	}
-	return BruntBlindAccessory;
+	return BruntPlugAccessory;
 };
-module.exports.BruntBlindAccessory = BruntBlindAccessory;
+module.exports.BruntPlugAccessory = BruntPlugAccessory;
 
-function BruntBlindAccessory(platform, device) {
+function BruntPlugAccessory(platform, device) {
 	
 	this.deviceid = device.uri;
 	this.name = device.name;
@@ -48,9 +48,6 @@ function BruntBlindAccessory(platform, device) {
 	
 	// HomeKit does really strange things since we have to wait on the data to get populated
 	// This is just intro information. It will be corrected in a couple of seconds.
-	that.state.currentPosition = 100; // closed
-	that.state.targetPosition = 100; // closed
-	that.state.moveState = 2; // stopped
 	that.state.refreshCycle = stateRefreshRate;
 
 	this.loadData();
@@ -61,62 +58,22 @@ function BruntBlindAccessory(platform, device) {
 	// AccessoryInformation characteristic
 	// Manufacturer characteristic
 	this.getService(Service.AccessoryInformation)
-		.setCharacteristic(Characteristic.Manufacturer, "homebridge-brunt");
+		.setCharacteristic(Characteristic.Manufacturer, "brunt.co");
 	
 	// Model characteristic	
 	this.getService(Service.AccessoryInformation)
-		.setCharacteristic(Characteristic.Model, "version 0.0.1");
+		.setCharacteristic(Characteristic.Model, "Brunt Plug");
 	
 	// SerialNumber characteristic
 	this.getService(Service.AccessoryInformation)
-		.setCharacteristic(Characteristic.SerialNumber, "Pod ID: " + that.deviceid);
+		.setCharacteristic(Characteristic.SerialNumber, that.deviceid);
 	
-	// Add window blind
-	this.addService(Service.WindowCovering);	
+	// Add plug device
+	this.addService(Service.Outlet);	
 
-	// Current position
-	this.getService(Service.WindowCovering)
-		.getCharacteristic(Characteristic.CurrentPosition)
-		.on("get", function (callback) {
-			callback(null, that.state.currentPosition);
-		});
-
-	// Target position characteristic
-	this.getService(Service.WindowCovering)
-		.getCharacteristic(Characteristic.TargetPosition)
-		.on("get", function (callback) {
-			callback(null, that.state.targetPosition);
-		})
-		.on("set", function(value, callback) {
-			callback();
-			that.state.position = value;
-			that.platform.api.changePosition(that.sessionId ,that.deviceid, value, function(data){
-				if (data !== undefined) {
-					var rightnow = new Date();
-					that.state.targetPosition = value;
-					if (that.state.targetPosition < that.state.currentPosition) {
-						that.state.moveState = 0;
-						that.state.updatetime = rightnow;
-						stateTimeToLive = 10000;
-					} else if (that.state.targetPosition > that.state.currentPosition) {
-						that.state.moveState = 1;
-						that.state.updatetime = rightnow;
-						stateTimeToLive = 10000;
-					} else {
-						that.state.moveState = 2;
-						stateTimeToLive = 30000;
-					}
-				}
-			});
-		});
-
-	// Position characteristic
-	this.getService(Service.WindowCovering)
-		.getCharacteristic(Characteristic.PositionState)
-		.on("get", function (callback) {
-			callback(null, that.state.moveState);
-		})
-
+	// Current state
+	this.getService(Service.Outlet)
+		.getCharacteristic(Characteristic.On)
 }
 
 
@@ -132,42 +89,10 @@ function refreshState(callback) {
 		return
 	}
 
-	// If the blind is moving then check more often
-	if (that.state.targetPosition != that.state.currentPosition) {
-			stateTimeToLive = 2000;
-	} else {
-			stateTimeToLive = 60000;
-	}
-
 	if (!that.state.updatetime) that.state.updatetime = rightnow;
 
 	// Update the State
-	that.platform.api.getState(that.sessionId ,that.deviceid, function(blindState) {
-
-		if (blindState !== undefined ) {
-
-			switch (blindState.moveState) {
-				case "1":
-					that.state.moveState = 1;
-					break;
-				case "2":
-					that.state.moveState = 0;
-					break;
-				default:
-					that.state.moveState = 2;
-			}
-
-			that.state.targetPosition = blindState.requestPosition;
-			that.state.currentPosition = blindState.currentPosition;
-
-			// Because the Brunt blinds do not always stop exactly on the target position we allow a couple of percent eitherway or the Home app thinks the blinds are still moving
-
-			if (that.state.currentPosition < that.state.targetPosition+2 || that.state.currentPosition < that.state.targetPosition-2 ) that.state.currentPosition = that.state.targetPosition;
-			that.state.updatetime = new Date(); // Set our last update time.
-		}
-		
-		callback();
-	});		
+	that.platform.api.getState(that.sessionId ,that.deviceid);		
 }
 
 function loadData() {
